@@ -1,0 +1,31 @@
+# depslib dependency file v1.0
+1741943940 source:e:\codeblocc\kkkkk\main.cpp
+	<sdl.h>
+	<iostream>
+	"game.h"
+	<SDL_image.h>
+
+1740366983 source:e:\codeblocc\kkkkk\main_keyboard.cpp
+	<iostream>
+	<SDL.h>
+	<SDL_image.h>
+
+1741950485 e:\codeblocc\kkkkk\game.h
+	<vector>
+	"wall.h"
+	<SDL.h>
+	<fstream>
+	<iostream>
+	<string>
+
+1741945319 e:\codeblocc\kkkkk\wall.h
+	<SDL.h>
+
+1741951075 source:e:\codeblocc\kkkkk\game.cpp
+	"game.h"
+	<iostream>
+
+1741950911 source:e:\codeblocc\kkkkk\wall.cpp
+	"wall.h"
+	"game.h"
+
