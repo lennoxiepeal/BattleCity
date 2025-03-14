@@ -32,6 +32,9 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Unit filename="constants.h">
+			<Option target="Debug" />
+		</Unit>
 		<Unit filename="game.cpp">
 			<Option target="Debug" />
 		</Unit>
@@ -39,6 +42,12 @@
 			<Option target="Debug" />
 		</Unit>
 		<Unit filename="main.cpp" />
+		<Unit filename="tank.cpp">
+			<Option target="Debug" />
+		</Unit>
+		<Unit filename="tank.h">
+			<Option target="Debug" />
+		</Unit>
 		<Unit filename="wall.cpp">
 			<Option target="Debug" />
 		</Unit>

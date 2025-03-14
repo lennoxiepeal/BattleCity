@@ -29,12 +29,30 @@ Game::Game() {
         return;
     }
     generateWall();
+    player=PlayerTank(((MAP_WIDTH-1)/2)*TITLE_SIZE,2*TITLE_SIZE);
     std::cerr << "Initialization complete!" << std::endl;
 }
+void Game::handleEvent(){
+    SDL_Event event;
+    while(SDL_PollEvent(&event)){
+        if(event.type==SDL_QUIT){
+            running=false;
+        }
+        else if(event.type==SDL_KEYDOWN){
+            switch(event.key.keysym.sym){
+                case SDLK_UP:player.move(0,-10,walls);break;
+                case SDLK_DOWN:player.move(0,10,walls);break;
+                case SDLK_LEFT:player.move(-10,0,walls);break;
+                case SDLK_RIGHT:player.move(10,0,walls);break;
+            }
+        }
+    }
 
+}
 void Game::run() {
     std::cerr << "Starting game loop..." << std::endl;
     while (running) {
+        handleEvent();
         render();
         SDL_Delay(16);
     }
@@ -56,6 +74,7 @@ void Game::render() {
     for(int i=0;i<walls.size();i++){
         walls[i].render(renderer);
     }
+    player.render(renderer);
     SDL_RenderPresent(renderer);
 }
 void Game::generateWall(){

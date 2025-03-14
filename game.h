@@ -1,24 +1,23 @@
 #ifndef GAME_H_INCLUDED
 #define GAME_H_INCLUDED
 #include <vector>
-#include "wall.h"
 #include <SDL.h>
 #include <fstream>
 #include <iostream>
 #include <string>
+#include "constants.h"
+#include "wall.h"
+#include "tank.h"
 using namespace std;
-const int SCREEN_HEIGHT=600;
-const int SCREEN_WIDTH=800;
-const int TITLE_SIZE=40;
-const int MAP_WIDTH=SCREEN_WIDTH/TITLE_SIZE;
-const int MAP_HEIGHT=SCREEN_HEIGHT/TITLE_SIZE;
 class Game{
 public:
     SDL_Window* window;
     bool running;
     SDL_Renderer* renderer;
     vector<Wall> walls;
+    PlayerTank player;
     Game();
+    void handleEvent();
     void render();
     void generateWall();
     void run();
