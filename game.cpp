@@ -44,6 +44,7 @@ void Game::handleEvent(){
                 case SDLK_DOWN:player.move(0,10,walls);break;
                 case SDLK_LEFT:player.move(-10,0,walls);break;
                 case SDLK_RIGHT:player.move(10,0,walls);break;
+                case SDLK_SPACE:player.shoot();break;
             }
         }
     }
@@ -54,6 +55,7 @@ void Game::run() {
     while (running) {
         handleEvent();
         render();
+        update();
         SDL_Delay(16);
     }
     std::cerr << "Game loop exited!" << std::endl;
@@ -106,7 +108,27 @@ void Game::generateWall(){
     file.close();
     cerr << "Map loaded successfully, total walls: " << walls.size() << endl;
 }
+void Game::update(){
+    player.updateBullets(walls);
 
+    for(auto &Bullets:player.bullets){
+        for(auto &Wall:walls){
+            if(Wall.active&&Wall.type==BRICK&&SDL_HasIntersection(&Bullets.rect,&Wall.rect)){
+                Wall.active=false;
+                Bullets.active=false;
+                break;
+            }
+            else if(Wall.active&&Wall.type==STEEL&&SDL_HasIntersection(&Bullets.rect,&Wall.rect)){
+                Bullets.active=false;
+                break;
+            }
+            else if(Wall.active&&Wall.type==BUSH&&SDL_HasIntersection(&Bullets.rect,&Wall.rect)){
+                Bullets.inBush=true;
+                break;
+            }
+        }
+    }
+}
 Game::~Game() {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);

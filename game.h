@@ -8,6 +8,7 @@
 #include "constants.h"
 #include "wall.h"
 #include "tank.h"
+#include "bullets.h"
 using namespace std;
 class Game{
 public:
@@ -21,6 +22,7 @@ public:
     void render();
     void generateWall();
     void run();
+    void update();
     ~Game();
 };
 

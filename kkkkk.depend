@@ -29,11 +29,11 @@
 	"wall.h"
 	"game.h"
 
-1741963959 source:e:\codeblocc\kkkkk\battleciry\game.cpp
+1741971236 source:e:\codeblocc\kkkkk\battleciry\game.cpp
 	"game.h"
 	<iostream>
 
-1741966381 e:\codeblocc\kkkkk\battleciry\game.h
+1741969244 e:\codeblocc\kkkkk\battleciry\game.h
 	<vector>
 	<SDL.h>
 	<fstream>
@@ -42,6 +42,7 @@
 	"constants.h"
 	"wall.h"
 	"tank.h"
+	"bullets.h"
 
 1741945319 e:\codeblocc\kkkkk\battleciry\wall.h
 	<SDL.h>
@@ -56,13 +57,23 @@
 	"wall.h"
 	"game.h"
 
-1741966360 e:\codeblocc\kkkkk\battleciry\tank.h
+1741971953 e:\codeblocc\kkkkk\battleciry\tank.h
 	<vector>
 	"wall.h"
 	"constants.h"
+	"bullets.h"
 
-1741964919 source:e:\codeblocc\kkkkk\battleciry\tank.cpp
+1741972708 source:e:\codeblocc\kkkkk\battleciry\tank.cpp
 	"tank.h"
 
-1741965913 e:\codeblocc\kkkkk\battleciry\constants.h
+1741969207 e:\codeblocc\kkkkk\battleciry\constants.h
+	<SDL.h>
+	<iostream>
+	<algorithm>
+
+1741970288 e:\codeblocc\kkkkk\battleciry\bullets.h
+	"constants.h"
+
+1741971494 source:e:\codeblocc\kkkkk\battleciry\bullets.cpp
+	"bullets.h"
 

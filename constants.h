@@ -1,6 +1,8 @@
 #ifndef CONSTANTS_H_INCLUDED
 #define CONSTANTS_H_INCLUDED
-
+#include <SDL.h>
+#include <iostream>
+#include <algorithm>
 const int SCREEN_HEIGHT=600;
 const int SCREEN_WIDTH=800;
 const int TITLE_SIZE=40;

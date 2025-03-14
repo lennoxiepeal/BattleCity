@@ -32,6 +32,12 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Unit filename="bullets.cpp">
+			<Option target="Debug" />
+		</Unit>
+		<Unit filename="bullets.h">
+			<Option target="Debug" />
+		</Unit>
 		<Unit filename="constants.h">
 			<Option target="Debug" />
 		</Unit>
