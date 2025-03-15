@@ -29,7 +29,8 @@ Game::Game() {
         return;
     }
     generateWall();
-    player=PlayerTank(((MAP_WIDTH-1)/2)*TITLE_SIZE,2*TITLE_SIZE);
+    player=PlayerTank(((MAP_WIDTH-1)/2)*TITLE_SIZE,(MAP_HEIGHT-2)*TITLE_SIZE);
+    spawnEnemyTank();
     std::cerr << "Initialization complete!" << std::endl;
 }
 void Game::handleEvent(){
@@ -40,10 +41,10 @@ void Game::handleEvent(){
         }
         else if(event.type==SDL_KEYDOWN){
             switch(event.key.keysym.sym){
-                case SDLK_UP:player.move(0,-10,walls);break;
-                case SDLK_DOWN:player.move(0,10,walls);break;
-                case SDLK_LEFT:player.move(-10,0,walls);break;
-                case SDLK_RIGHT:player.move(10,0,walls);break;
+                case SDLK_UP:player.move(0,-10,walls,enemies);break;
+                case SDLK_DOWN:player.move(0,10,walls,enemies);break;
+                case SDLK_LEFT:player.move(-10,0,walls,enemies);break;
+                case SDLK_RIGHT:player.move(10,0,walls,enemies);break;
                 case SDLK_SPACE:player.shoot();break;
             }
         }
@@ -77,6 +78,9 @@ void Game::render() {
         walls[i].render(renderer);
     }
     player.render(renderer);
+    for(auto &enemy:enemies){
+        enemy.render(renderer);
+    }
     SDL_RenderPresent(renderer);
 }
 void Game::generateWall(){
@@ -108,8 +112,55 @@ void Game::generateWall(){
     file.close();
     cerr << "Map loaded successfully, total walls: " << walls.size() << endl;
 }
+
+void Game::spawnEnemyTank(){
+    enemies.clear();
+    for(int i=0;i<enemynumber;i++){
+        int ex,ey;
+        bool validPos=false;
+        while(!validPos){
+            ex=(rand()%(MAP_WIDTH-2)+1)*TITLE_SIZE;
+            ey=(rand()%(MAP_HEIGHT-2)+1)*TITLE_SIZE;
+            validPos=true;
+            for(const auto &Wall:walls){
+                if(Wall.active&&Wall.x==ex&&Wall.y==ey){
+                    validPos=false;
+                    break;
+                }
+            }
+        }
+        enemies.push_back(EnemyTank(ex,ey));
+    }
+}
+
 void Game::update(){
     player.updateBullets(walls);
+    for(auto &enemy:enemies){
+        enemy.move(walls,enemies,player);
+        enemy.updateBullets(walls,enemies,player);
+        if(rand()%100<2){
+            enemy.shoot();
+        }
+    }
+    for(auto &enemy:enemies){
+        for(auto &Bullet:enemy.bullets){
+            for(auto &Wall:walls){
+            if(Wall.active&&Wall.type==BRICK&&SDL_HasIntersection(&Bullet.rect,&Wall.rect)){
+                Wall.active=false;
+                Bullet.active=false;
+                break;
+            }
+            else if(Wall.active&&Wall.type==STEEL&&SDL_HasIntersection(&Bullet.rect,&Wall.rect)){
+                Bullet.active=false;
+                break;
+            }
+            else if(Wall.active&&Wall.type==BUSH&&SDL_HasIntersection(&Bullet.rect,&Wall.rect)){
+                Bullet.inBush=true;
+                break;
+            }
+            }
+        }
+    }
 
     for(auto &Bullets:player.bullets){
         for(auto &Wall:walls){
@@ -125,6 +176,34 @@ void Game::update(){
             else if(Wall.active&&Wall.type==BUSH&&SDL_HasIntersection(&Bullets.rect,&Wall.rect)){
                 Bullets.inBush=true;
                 break;
+            }
+        }
+    }
+    for(auto &Bullet:player.bullets){
+        for(auto &enemy:enemies){
+            if(enemy.active&&SDL_HasIntersection(&Bullet.rect,&enemy.rect)){
+                enemy.active=false;
+                Bullet.active=false;
+            }
+        }
+    }
+    enemies.erase(remove_if(enemies.begin(),enemies.end(),
+                            [](EnemyTank &e){return !e.active;}),enemies.end());
+    for(auto &enemy:enemies){
+        for(auto &Bullet1:player.bullets){
+            for(auto &Bullet2:enemy.bullets){
+                if(Bullet1.active&&Bullet2.active&&SDL_HasIntersection(&Bullet1.rect,&Bullet2.rect)){
+                    Bullet1.active=false;
+                    Bullet2.active=false;
+                }
+            }
+        }
+    }
+    for(auto &enemy:enemies){
+        for(auto &Bullet:enemy.bullets){
+            if(SDL_HasIntersection(&Bullet.rect,&player.rect)){
+                running=false;
+                return;
             }
         }
     }

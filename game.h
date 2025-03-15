@@ -16,11 +16,14 @@ public:
     bool running;
     SDL_Renderer* renderer;
     vector<Wall> walls;
+    vector<EnemyTank> enemies;
     PlayerTank player;
+    int enemynumber=3;
     Game();
     void handleEvent();
     void render();
     void generateWall();
+    void spawnEnemyTank();
     void run();
     void update();
     ~Game();
