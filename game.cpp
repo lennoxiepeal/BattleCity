@@ -28,11 +28,25 @@ Game::Game() {
         running = false;
         return;
     }
+    spritesheet=loadTexture("assets.png");
     generateWall();
     player=PlayerTank(((MAP_WIDTH-1)/2)*TITLE_SIZE,(MAP_HEIGHT-2)*TITLE_SIZE);
+    player2=PlayerTank(((MAP_WIDTH-3)/2)*TITLE_SIZE,(MAP_HEIGHT-2)*TITLE_SIZE);
     spawnEnemyTank();
     std::cerr << "Initialization complete!" << std::endl;
 }
+
+SDL_Texture* Game::loadTexture(const string &path){
+    SDL_Surface* tempSurface = IMG_Load(path.c_str());
+    if(!tempSurface){
+        cerr<<"Failed to load assets of the game, error: "<<IMG_GetError()<<endl;
+        return nullptr;
+    }
+    SDL_Texture* texture=SDL_CreateTextureFromSurface(renderer,tempSurface);
+    SDL_FreeSurface(tempSurface);
+    return texture;
+}
+
 void Game::handleEvent(){
     SDL_Event event;
     while(SDL_PollEvent(&event)){
@@ -46,6 +60,11 @@ void Game::handleEvent(){
                 case SDLK_LEFT:player.move(-10,0,walls,enemies);break;
                 case SDLK_RIGHT:player.move(10,0,walls,enemies);break;
                 case SDLK_SPACE:player.shoot();break;
+                case SDLK_w:player2.move(0,-10,walls,enemies);break;
+                case SDLK_s:player2.move(0,10,walls,enemies);break;
+                case SDLK_a:player2.move(-10,0,walls,enemies);break;
+                case SDLK_d:player2.move(10,0,walls,enemies);break;
+                case SDLK_x:player2.shoot();break;
             }
         }
     }
@@ -75,9 +94,49 @@ void Game::render() {
         }
     }
     for(int i=0;i<walls.size();i++){
-        walls[i].render(renderer);
+        if(walls[i].type==BRICK){
+            SDL_Rect wallscr={1051,0,55,55};
+            walls[i].setSpriteSheet(spritesheet,wallscr);
+        }
+        else if(walls[i].type==STEEL){
+            SDL_Rect wallscr={1051,64,55,55};
+            walls[i].setSpriteSheet(spritesheet,wallscr);
+        }
+        else if(walls[i].type==BUSH){
+            SDL_Rect wallscr={1116,128,55,55};
+            walls[i].setSpriteSheet(spritesheet,wallscr);
+        }
     }
+    for(auto &Wall:walls){
+        Wall.render(renderer);
+    }
+    SDL_Rect player1scr,player2scr;
+    switch(player.direction){
+        case UP:{player1scr={3,7,55,55};break;}
+        case DOWN:{player1scr={233,5,55,55};break;}
+        case LEFT:{player1scr={126,66,68,56};break;}
+        case RIGHT:{player1scr={391,3,54,55};break;}
+    }
+    switch(player2.direction){
+        case UP:{player2scr={2,529,57,57};break;}
+        case DOWN:{player2scr={262,527,56,54};break;}
+        case LEFT:{player2scr={126,589,68,59};break;}
+        case RIGHT:{player2scr={390,526,56,57};break;}
+    };
+    for(auto &enemy:enemies){
+            SDL_Rect enemyscr;
+    switch(enemy.direction){
+        case UP:{enemyscr={521,530,57,56};break;}
+        case DOWN:{enemyscr={778,526,57,55};break;}
+        case LEFT:{enemyscr={651,526,59,56};break;}
+        case RIGHT:{enemyscr={906,526,55,56};break;}
+        };
+        enemy.setSpriteSheet(spritesheet,enemyscr);
+    }
+    player.setSpriteSheet(spritesheet,player1scr);
+    player2.setSpriteSheet(spritesheet,player2scr);
     player.render(renderer);
+    player2.render(renderer);
     for(auto &enemy:enemies){
         enemy.render(renderer);
     }
@@ -135,9 +194,10 @@ void Game::spawnEnemyTank(){
 
 void Game::update(){
     player.updateBullets(walls);
+    player2.updateBullets(walls);
     for(auto &enemy:enemies){
-        enemy.move(walls,enemies,player);
-        enemy.updateBullets(walls,enemies,player);
+        enemy.move(walls,enemies,player,player2);
+        enemy.updateBullets(walls,enemies,player,player2);
         if(rand()%100<2){
             enemy.shoot();
         }
@@ -179,7 +239,32 @@ void Game::update(){
             }
         }
     }
+    for(auto &Bullets:player2.bullets){
+        for(auto &Wall:walls){
+            if(Wall.active&&Wall.type==BRICK&&SDL_HasIntersection(&Bullets.rect,&Wall.rect)){
+                Wall.active=false;
+                Bullets.active=false;
+                break;
+            }
+            else if(Wall.active&&Wall.type==STEEL&&SDL_HasIntersection(&Bullets.rect,&Wall.rect)){
+                Bullets.active=false;
+                break;
+            }
+            else if(Wall.active&&Wall.type==BUSH&&SDL_HasIntersection(&Bullets.rect,&Wall.rect)){
+                Bullets.inBush=true;
+                break;
+            }
+        }
+    }
     for(auto &Bullet:player.bullets){
+        for(auto &enemy:enemies){
+            if(enemy.active&&SDL_HasIntersection(&Bullet.rect,&enemy.rect)){
+                enemy.active=false;
+                Bullet.active=false;
+            }
+        }
+    }
+    for(auto &Bullet:player2.bullets){
         for(auto &enemy:enemies){
             if(enemy.active&&SDL_HasIntersection(&Bullet.rect,&enemy.rect)){
                 enemy.active=false;
@@ -200,12 +285,38 @@ void Game::update(){
         }
     }
     for(auto &enemy:enemies){
-        for(auto &Bullet:enemy.bullets){
-            if(SDL_HasIntersection(&Bullet.rect,&player.rect)){
-                running=false;
-                return;
+        for(auto &Bullet1:player2.bullets){
+            for(auto &Bullet2:enemy.bullets){
+                if(Bullet1.active&&Bullet2.active&&SDL_HasIntersection(&Bullet1.rect,&Bullet2.rect)){
+                    Bullet1.active=false;
+                    Bullet2.active=false;
+                }
             }
         }
+    }
+    if(player.active){
+    for(auto &enemy:enemies){
+        for(auto &Bullet:enemy.bullets){
+            if(SDL_HasIntersection(&Bullet.rect,&player.rect)){
+                Bullet.active=false;
+                player.active=false;
+            }
+        }
+    }
+    }
+    if(player2.active){
+    for(auto &enemy:enemies){
+        for(auto &Bullet:enemy.bullets){
+            if(SDL_HasIntersection(&Bullet.rect,&player2.rect)){
+                Bullet.active=false;
+                player2.active=false;
+            }
+        }
+    }
+    }
+    if(!player2.active&&!player.active){
+        running=false;
+        return;
     }
 }
 Game::~Game() {

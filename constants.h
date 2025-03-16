@@ -1,6 +1,7 @@
 #ifndef CONSTANTS_H_INCLUDED
 #define CONSTANTS_H_INCLUDED
 #include <SDL.h>
+#include <SDL_image.h>
 #include <iostream>
 #include <algorithm>
 const int SCREEN_HEIGHT=600;

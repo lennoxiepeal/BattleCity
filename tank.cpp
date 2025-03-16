@@ -2,23 +2,34 @@
 PlayerTank::PlayerTank(int startX,int startY){
     x=startX;
     y=startY;
+    active=true;
     rect={x,y,TITLE_SIZE,TITLE_SIZE};
     dirX=0;
     dirY=-1;
 }
 void PlayerTank::render(SDL_Renderer* renderer){
-    if(inBush){
-        SDL_SetRenderDrawColor(renderer,0,255,0,255);
-    }
-    else{
-        SDL_SetRenderDrawColor(renderer,255,0,0,255);
-    }
-    SDL_RenderFillRect(renderer,&rect);
-    for(auto &Bullets:bullets){
+    if(active){
+        if(spritesheet){
+            SDL_RenderCopy(renderer,spritesheet,&scrRect,&rect);
+        }
+        else{
+            SDL_SetRenderDrawColor(renderer,255,0,0,255);
+            SDL_RenderFillRect(renderer,&rect);
+        }
+        for(auto &Bullets:bullets){
         Bullets.render(renderer);
+        }
     }
 }
+void PlayerTank::setSpriteSheet(SDL_Texture* sheet,SDL_Rect source){
+    spritesheet=sheet;
+    scrRect=source;
+}
 void PlayerTank::move(int dx,int dy,const vector<Wall>&walls,const vector<EnemyTank>enemies){
+    if(dx>0) direction=LEFT;
+    else if(dx<0) direction=RIGHT;
+    else if(dy>0) direction=DOWN;
+    else direction=UP;
     int newX=x+dx;
     int newY=y+dy;
     this->dirX=dx;
@@ -77,7 +88,7 @@ EnemyTank::EnemyTank(int startX,int startY){
     randomMoveTimer=0;
     active=true;
 }
-void EnemyTank::move(const vector<Wall>&walls,const vector<EnemyTank>enemies,const PlayerTank &player){
+void EnemyTank::move(const vector<Wall>&walls,const vector<EnemyTank>enemies,PlayerTank &player,PlayerTank &player2){
     if(--moveDelay>0) return;
     moveDelay=10;
     if(randomMoveTimer>0){
@@ -87,6 +98,10 @@ void EnemyTank::move(const vector<Wall>&walls,const vector<EnemyTank>enemies,con
         randomDirection(SCREEN_HEIGHT);
         randomMoveTimer=10;
     }
+    if(dirX>0) direction=LEFT;
+    else if(dirX<0) direction=RIGHT;
+    else if(dirY>0) direction=DOWN;
+    else direction=UP;
     int newX=x+this->dirX;
     int newY=y+this->dirY;
     SDL_Rect newRect={newX,newY,TITLE_SIZE,TITLE_SIZE};
@@ -97,6 +112,13 @@ void EnemyTank::move(const vector<Wall>&walls,const vector<EnemyTank>enemies,con
     }
     for(auto &enemy:enemies){
         if(SDL_HasIntersection(&enemy.rect,&player.rect)){
+            player.active=false;
+            return;
+        }
+    }
+    for(auto &enemy:enemies){
+        if(SDL_HasIntersection(&enemy.rect,&player2.rect)){
+            player2.active=false;
             return;
         }
     }
@@ -133,7 +155,7 @@ void EnemyTank::shoot(){
                               this->dirX,this->dirY));
 }
 
-void EnemyTank::updateBullets(const vector<Wall>&walls,const vector<EnemyTank>enemies,const PlayerTank &player){
+void EnemyTank::updateBullets(const vector<Wall>&walls,const vector<EnemyTank>enemies,const PlayerTank &player,const PlayerTank &player2){
     for(auto &Bullets:bullets){
         Bullets.move();
         Bullets.inBush=false;
@@ -148,9 +170,20 @@ void EnemyTank::updateBullets(const vector<Wall>&walls,const vector<EnemyTank>en
 }
 
 void EnemyTank::render(SDL_Renderer* renderer){
-    SDL_SetRenderDrawColor(renderer,255,0,0,255);
-    SDL_RenderFillRect(renderer,&rect);
-    for(auto &Bullets:bullets){
+    if(active){
+        if(spritesheet){
+            SDL_RenderCopy(renderer,spritesheet,&scrRect,&rect);
+        }
+        else{
+            SDL_SetRenderDrawColor(renderer,255,0,0,255);
+            SDL_RenderFillRect(renderer,&rect);
+        }
+        for(auto &Bullets:bullets){
         Bullets.render(renderer);
+        }
     }
+}
+void EnemyTank::setSpriteSheet(SDL_Texture* sheet,SDL_Rect source){
+    spritesheet=sheet;
+    scrRect=source;
 }
