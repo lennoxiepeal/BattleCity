@@ -113,23 +113,23 @@ void Game::render() {
     SDL_Rect player1scr,player2scr;
     switch(player.direction){
         case UP:{player1scr={3,7,55,55};break;}
-        case DOWN:{player1scr={233,5,55,55};break;}
-        case LEFT:{player1scr={126,66,68,56};break;}
-        case RIGHT:{player1scr={391,3,54,55};break;}
+        case DOWN:{player1scr={262,3,56,55};break;}
+        case RIGHT:{player1scr={126,66,68,56};break;}
+        case LEFT:{player1scr={391,3,54,55};break;}
     }
     switch(player2.direction){
         case UP:{player2scr={2,529,57,57};break;}
         case DOWN:{player2scr={262,527,56,54};break;}
-        case LEFT:{player2scr={126,589,68,59};break;}
-        case RIGHT:{player2scr={390,526,56,57};break;}
+        case RIGHT:{player2scr={126,589,68,59};break;}
+        case LEFT:{player2scr={390,526,56,57};break;}
     };
     for(auto &enemy:enemies){
             SDL_Rect enemyscr;
     switch(enemy.direction){
         case UP:{enemyscr={521,530,57,56};break;}
         case DOWN:{enemyscr={778,526,57,55};break;}
-        case LEFT:{enemyscr={651,526,59,56};break;}
-        case RIGHT:{enemyscr={906,526,55,56};break;}
+        case RIGHT:{enemyscr={651,526,59,56};break;}
+        case LEFT:{enemyscr={906,526,55,56};break;}
         };
         enemy.setSpriteSheet(spritesheet,enemyscr);
     }
@@ -195,6 +195,8 @@ void Game::spawnEnemyTank(){
 void Game::update(){
     player.updateBullets(walls);
     player2.updateBullets(walls);
+    player.ShootDelay--;
+    player2.ShootDelay--;
     for(auto &enemy:enemies){
         enemy.move(walls,enemies,player,player2);
         enemy.updateBullets(walls,enemies,player,player2);

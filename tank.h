@@ -12,7 +12,8 @@ class PlayerTank{
 public:
     int x,y;
     int dirX,dirY;
-    Direction direction;
+    int ShootDelay=20;
+    Direction direction=UP;
     SDL_Rect scrRect;
     SDL_Texture* spritesheet;
     bool active;

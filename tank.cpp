@@ -1,5 +1,6 @@
 #include "tank.h"
 PlayerTank::PlayerTank(int startX,int startY){
+    ShootDelay=20;
     x=startX;
     y=startY;
     active=true;
@@ -61,6 +62,8 @@ void PlayerTank::move(int dx,int dy,const vector<Wall>&walls,const vector<EnemyT
     }
 }
 void PlayerTank::shoot(){
+    if(ShootDelay>0) return;
+    ShootDelay=20;
     bullets.push_back(Bullets(x+TITLE_SIZE/2-5,y+TITLE_SIZE/2-5,
                               this->dirX,this->dirY));
 }
@@ -110,18 +113,13 @@ void EnemyTank::move(const vector<Wall>&walls,const vector<EnemyTank>enemies,Pla
             return;
         }
     }
-    for(auto &enemy:enemies){
-        if(SDL_HasIntersection(&enemy.rect,&player.rect)){
-            player.active=false;
-            return;
-        }
-    }
-    for(auto &enemy:enemies){
-        if(SDL_HasIntersection(&enemy.rect,&player2.rect)){
-            player2.active=false;
-            return;
-        }
-    }
+
+    if(SDL_HasIntersection(&this->rect,&player.rect)){
+       return;
+       }
+    if(SDL_HasIntersection(&this->rect,&player2.rect)){
+       return;
+       }
     if(newX>=TITLE_SIZE&&newX<=SCREEN_WIDTH-TITLE_SIZE*2&&
        newY>=TITLE_SIZE&&newY<=SCREEN_HEIGHT-TITLE_SIZE*2){
         x=newX;
