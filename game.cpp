@@ -29,10 +29,7 @@ Game::Game() {
         return;
     }
     spritesheet=loadTexture("assets.png");
-    generateWall();
-    player=PlayerTank(((MAP_WIDTH-1)/2)*TITLE_SIZE,(MAP_HEIGHT-2)*TITLE_SIZE);
-    player2=PlayerTank(((MAP_WIDTH-3)/2)*TITLE_SIZE,(MAP_HEIGHT-2)*TITLE_SIZE);
-    spawnEnemyTank();
+    loadLevel(currentLevel);
     std::cerr << "Initialization complete!" << std::endl;
 }
 
@@ -73,10 +70,16 @@ void Game::handleEvent(){
 void Game::run() {
     std::cerr << "Starting game loop..." << std::endl;
     while (running) {
+        if(gstate==MENU){
+            handleMenuEvent();
+            renderMenu(menuSelection);
+        }
+        else{
         handleEvent();
         render();
         update();
         SDL_Delay(16);
+        }
     }
     std::cerr << "Game loop exited!" << std::endl;
 }
@@ -108,21 +111,33 @@ void Game::render() {
         }
     }
     for(auto &Wall:walls){
-        Wall.render(renderer);
+        if(Wall.type!=BUSH){
+            Wall.render(renderer);
+        }
     }
+    if(gstate!=MENU){
+    player2.active=false;
     SDL_Rect player1scr,player2scr;
-    switch(player.direction){
-        case UP:{player1scr={3,7,55,55};break;}
-        case DOWN:{player1scr={262,3,56,55};break;}
-        case RIGHT:{player1scr={126,66,68,56};break;}
-        case LEFT:{player1scr={391,3,54,55};break;}
+        switch(player.direction){
+            case UP:{player1scr={3,7,55,55};break;}
+            case DOWN:{player1scr={262,3,56,55};break;}
+            case RIGHT:{player1scr={126,66,68,56};break;}
+            case LEFT:{player1scr={391,3,54,55};break;}
+            }
+            player.setSpriteSheet(spritesheet,player1scr);
+            player.render(renderer);
+            if(gstate==MULTIPLAYER){
+                player2.active=true;
+                switch(player2.direction){
+                case UP:{player2scr={2,529,57,57};break;}
+                case DOWN:{player2scr={262,527,56,54};break;}
+                case RIGHT:{player2scr={126,589,68,59};break;}
+                case LEFT:{player2scr={390,526,56,57};break;}
+                    };
+                    player2.setSpriteSheet(spritesheet,player2scr);
+                    player2.render(renderer);
+            }
     }
-    switch(player2.direction){
-        case UP:{player2scr={2,529,57,57};break;}
-        case DOWN:{player2scr={262,527,56,54};break;}
-        case RIGHT:{player2scr={126,589,68,59};break;}
-        case LEFT:{player2scr={390,526,56,57};break;}
-    };
     for(auto &enemy:enemies){
             SDL_Rect enemyscr;
     switch(enemy.direction){
@@ -133,17 +148,70 @@ void Game::render() {
         };
         enemy.setSpriteSheet(spritesheet,enemyscr);
     }
-    player.setSpriteSheet(spritesheet,player1scr);
-    player2.setSpriteSheet(spritesheet,player2scr);
-    player.render(renderer);
-    player2.render(renderer);
     for(auto &enemy:enemies){
         enemy.render(renderer);
     }
+    for(auto &Wall:walls){
+        if(Wall.type==BUSH){
+            Wall.render(renderer);
+        }
+    }
     SDL_RenderPresent(renderer);
 }
-void Game::generateWall(){
-    ifstream file("map1.txt");
+void Game::handleMenuEvent(){
+    SDL_Event event;
+    while(SDL_PollEvent(&event)){
+        if(event.type==SDL_QUIT){
+            running=false;
+            return;
+        }
+        if(event.type==SDL_KEYDOWN){
+            switch(event.key.keysym.sym){
+            case SDLK_UP:
+                menuSelection=((menuSelection-1+3)%3);
+                break;
+            case SDLK_DOWN:
+                menuSelection=((menuSelection+1+3)%3);
+                break;
+            case SDLK_SPACE:
+                if(menuSelection==0) gstate=SINGLEPLAYER;
+                else if(menuSelection==1) gstate=MULTIPLAYER;
+                else if(menuSelection==2) running=false;
+                break;
+            }
+        }
+    }
+}
+void Game::renderMenu(const int &menuSelection){
+    string imagePath;
+    switch(menuSelection){
+        case 0: imagePath="MenuImgs/Menu0.jpg";break;
+        case 1: imagePath="MenuImgs/Menu1.jpg";break;
+        case 2: imagePath="MenuImgs/Menu2.jpg";break;
+    }
+    SDL_Texture* menuTexture=IMG_LoadTexture(renderer,imagePath.c_str());
+    if(!menuTexture){
+        cerr<<"Failed to load menu image! "<<IMG_GetError()<<endl;
+        return;
+    }
+    SDL_Rect menuRect={0,0,SCREEN_WIDTH,SCREEN_HEIGHT};
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer,menuTexture,nullptr,&menuRect);
+    SDL_RenderPresent(renderer);
+    SDL_DestroyTexture(menuTexture);
+}
+void Game::loadLevel(int level){
+    enemies.clear();
+    walls.clear();
+    string mapFile="maps/"+to_string(level)+".txt";
+    enemynumber=5+level;
+    generateWall(mapFile);
+    spawnEnemyTank();
+    player=PlayerTank(((MAP_WIDTH-1)/2)*TITLE_SIZE,(MAP_HEIGHT-2)*TITLE_SIZE);
+    player2=PlayerTank(((MAP_WIDTH-3)/2)*TITLE_SIZE,(MAP_HEIGHT-2)*TITLE_SIZE);
+}
+void Game::generateWall(const string &mapFile){
+    ifstream file(mapFile.c_str());
     if(!file){
         cerr << "Cannot open txt map" << endl;
         return;
@@ -178,8 +246,8 @@ void Game::spawnEnemyTank(){
         int ex,ey;
         bool validPos=false;
         while(!validPos){
-            ex=(rand()%(MAP_WIDTH-2)+1)*TITLE_SIZE;
-            ey=(rand()%(MAP_HEIGHT-2)+1)*TITLE_SIZE;
+            ex=(rand()%(MAP_WIDTH/2-2)+1)*TITLE_SIZE;
+            ey=(rand()%(MAP_HEIGHT/2-2)+1)*TITLE_SIZE;
             validPos=true;
             for(const auto &Wall:walls){
                 if(Wall.active&&Wall.x==ex&&Wall.y==ey){
@@ -193,6 +261,10 @@ void Game::spawnEnemyTank(){
 }
 
 void Game::update(){
+    if(enemies.empty()){
+        currentLevel++;
+        loadLevel(currentLevel);
+    }
     player.updateBullets(walls);
     player2.updateBullets(walls);
     player.ShootDelay--;

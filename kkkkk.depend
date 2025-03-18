@@ -29,11 +29,11 @@
 	"wall.h"
 	"game.h"
 
-1742182814 source:e:\codeblocc\kkkkk\battleciry\game.cpp
+1742318735 source:e:\codeblocc\kkkkk\battleciry\game.cpp
 	"game.h"
 	<iostream>
 
-1742114905 e:\codeblocc\kkkkk\battleciry\game.h
+1742313319 e:\codeblocc\kkkkk\battleciry\game.h
 	<vector>
 	<SDL.h>
 	<fstream>
@@ -66,11 +66,13 @@
 1742183000 source:e:\codeblocc\kkkkk\battleciry\tank.cpp
 	"tank.h"
 
-1742110423 e:\codeblocc\kkkkk\battleciry\constants.h
+1742313296 e:\codeblocc\kkkkk\battleciry\constants.h
 	<SDL.h>
 	<SDL_image.h>
 	<iostream>
 	<algorithm>
+	<SDL_mixer.h>
+	<string>
 
 1742109119 e:\codeblocc\kkkkk\battleciry\bullets.h
 	"constants.h"
