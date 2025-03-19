@@ -51,6 +51,13 @@ void Game::handleEvent(){
             running=false;
         }
         else if(event.type==SDL_KEYDOWN){
+            if(event.key.keysym.sym==SDLK_ESCAPE){
+                if(gstate==PAUSE) gstate=(gstate==SINGLEPLAYER)?SINGLEPLAYER:MULTIPLAYER;
+                else{
+                    prevState=gstate;
+                    gstate=PAUSE;
+                }
+            }
             switch(event.key.keysym.sym){
                 case SDLK_UP:player.move(0,-10,walls,enemies);break;
                 case SDLK_DOWN:player.move(0,10,walls,enemies);break;
@@ -67,12 +74,49 @@ void Game::handleEvent(){
     }
 
 }
+void Game::handlePauseEvent(){
+    SDL_Event event;
+    while(SDL_PollEvent(&event)){
+        switch(event.key.keysym.sym){
+        case SDLK_UP:pauseSelection= (pauseSelection-1+3)%3;break;
+        case SDLK_DOWN:pauseSelection=(pauseSelection+1+3)%3;break;
+        case SDLK_SPACE:
+            if(pauseSelection==0){
+                gstate=prevState;
+                SDL_FlushEvent(SDL_KEYDOWN);
+                SDL_FlushEvent(SDL_KEYUP);
+            }
+            else if(pauseSelection==1) gstate=MENU;
+            else if(pauseSelection==2) gstate=MENU;
+            break;
+        }
+    }
+}
+
+void Game::renderPause(int pauseSelection){
+    string pausescr="pause/";
+    SDL_Texture* pauseTexture=IMG_LoadTexture(renderer,(pausescr+to_string(pauseSelection)+".jpg").c_str());
+    if(!pauseTexture){
+        cerr<<"Failed to load pausescreen!"<<IMG_GetError()<<endl;
+        return;
+    }
+    SDL_Rect menuRect={0,0,SCREEN_WIDTH,SCREEN_HEIGHT};
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer,pauseTexture,nullptr,&menuRect);
+    SDL_RenderPresent(renderer);
+    SDL_DestroyTexture(pauseTexture);
+}
+
 void Game::run() {
     std::cerr << "Starting game loop..." << std::endl;
     while (running) {
         if(gstate==MENU){
             handleMenuEvent();
             renderMenu(menuSelection);
+        }
+        else if(gstate==PAUSE){
+            handlePauseEvent();
+            renderPause(pauseSelection);
         }
         else{
         handleEvent();

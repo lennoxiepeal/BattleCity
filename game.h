@@ -10,7 +10,7 @@
 #include "tank.h"
 #include "bullets.h"
 using namespace std;
-enum GameState {MENU, SINGLEPLAYER, MULTIPLAYER, EXIT};
+enum GameState {MENU, SINGLEPLAYER, MULTIPLAYER,PAUSE, EXIT};
 class Game{
 public:
     SDL_Window* window;
@@ -19,17 +19,22 @@ public:
     SDL_Texture* spritesheet;
     SDL_Texture* loadTexture(const string &path);
     GameState gstate=MENU;
+    GameState prevState;
     int menuSelection=0;
     int currentLevel=1;
     const int maxLevel=3;
+    int pauseSelection=0;
     vector<Wall> walls;
     vector<EnemyTank> enemies;
     PlayerTank player;
     PlayerTank player2;
     int enemynumber=5;
     Game();
+    void saveGame();
     void handleEvent();
     void handleMenuEvent();
+    void handlePauseEvent();
+    void renderPause(int pauseSelection);
     void loadLevel(int level);
     void renderMenu(const int &menuSelection);
     void render();
