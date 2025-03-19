@@ -1,4 +1,4 @@
-# BattleCiry
+# BattleCity
 
 Student name: Đinh Văn Tiến
 Student id: 24020320

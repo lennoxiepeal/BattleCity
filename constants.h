@@ -4,7 +4,7 @@
 #include <SDL_image.h>
 #include <iostream>
 #include <algorithm>
-#include <SDL_mixer.h>'
+#include <SDL_mixer.h>
 #include <string>
 const int SCREEN_HEIGHT=600;
 const int SCREEN_WIDTH=800;

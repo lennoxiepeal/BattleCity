@@ -10,7 +10,7 @@
 #include "tank.h"
 #include "bullets.h"
 using namespace std;
-enum GameState {MENU, SINGLEPLAYER, MULTIPLAYER,PAUSE, EXIT};
+enum GameState {MENU, SINGLEPLAYER, MULTIPLAYER, PAUSE, LOADSCREEN, EXIT};
 class Game{
 public:
     SDL_Window* window;
@@ -21,6 +21,7 @@ public:
     GameState gstate=MENU;
     GameState prevState;
     int menuSelection=0;
+    int loadScreenSelection=0;
     int currentLevel=1;
     const int maxLevel=3;
     int pauseSelection=0;
@@ -31,8 +32,11 @@ public:
     int enemynumber=5;
     Game();
     void saveGame();
+    void loadGame();
     void handleEvent();
     void handleMenuEvent();
+    void handleLoadEvent();
+    void renderLoad(int loadScreenSelection);
     void handlePauseEvent();
     void renderPause(int pauseSelection);
     void loadLevel(int level);
