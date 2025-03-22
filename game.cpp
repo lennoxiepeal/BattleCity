@@ -91,11 +91,6 @@ void Game::handleLoadEvent() {
                 case SDLK_SPACE:
                     if (loadScreenSelection == 0) {
                         loadGame();
-                        if (!player2.active) {
-                            gstate = SINGLEPLAYER;
-                        } else {
-                            gstate = MULTIPLAYER;
-                        }
                     } else {
                         currentLevel = 1;
                         loadLevel(currentLevel);
@@ -154,6 +149,60 @@ void Game::renderPause(int pauseSelection){
     SDL_DestroyTexture(pauseTexture);
 }
 
+void Game::handleLoss(){
+    SDL_Event event;
+    while(SDL_PollEvent(&event)){
+        if(event.type==SDL_KEYDOWN){
+            switch(event.key.keysym.sym){
+                case SDLK_UP: {loseSelection=(loseSelection-1+2)%2;break;}
+                case SDLK_DOWN: {loseSelection=(loseSelection+1+2)%2;break;}
+                case SDLK_SPACE: if(loseSelection==0) {gstate=MENU;break;}
+                                else {running=false;break;}
+            }
+        }
+    }
+}
+
+void Game::renderLoss(int loseSelection){
+    string losescr="Lose/";
+    SDL_Texture* loseTexture=IMG_LoadTexture(renderer,(losescr+to_string(loseSelection)+".jpg").c_str());
+    if(!loseTexture){
+        cerr<<"Failed to load lose screen!"<<IMG_GetError()<<endl;
+    }
+    SDL_Rect menuRect={0,0,SCREEN_WIDTH,SCREEN_HEIGHT};
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer,loseTexture,nullptr,&menuRect);
+    SDL_RenderPresent(renderer);
+    SDL_DestroyTexture(loseTexture);
+}
+
+void Game::handleWin(){
+    SDL_Event event;
+    while(SDL_PollEvent(&event)){
+        if(event.type==SDL_KEYDOWN){
+            switch(event.key.keysym.sym){
+                case SDLK_UP: {winSelection=(winSelection-1+2)%2;break;}
+                case SDLK_DOWN: {winSelection=(winSelection+1+2)%2;break;}
+                case SDLK_SPACE: {if(winSelection==0) {gstate=MENU;break;}
+                                else{ running=false;break;}}
+            }
+        }
+    }
+}
+
+void Game::renderWin(int winSelection){
+    string winscr="Win/";
+    SDL_Texture* winTexture=IMG_LoadTexture(renderer,(winscr+to_string(winSelection)+".jpg").c_str());
+    if(!winTexture){
+        cerr<<"Failed to load victory screen!"<<IMG_GetError()<<endl;
+    }
+    SDL_Rect menuRect={0,0,SCREEN_WIDTH,SCREEN_HEIGHT};
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer,winTexture,nullptr,&menuRect);
+    SDL_RenderPresent(renderer);
+    SDL_DestroyTexture(winTexture);
+}
+
 void Game::run() {
     std::cerr << "Starting game loop..." << std::endl;
     while (running) {
@@ -168,6 +217,14 @@ void Game::run() {
         else if(gstate==LOADSCREEN){
             handleLoadEvent();
             renderLoad(loadScreenSelection);
+        }
+        else if(gstate==VICTORY){
+            handleWin();
+            renderWin(winSelection);
+        }
+        else if(gstate==LOSS){
+            handleLoss();
+            renderLoss(loseSelection);
         }
         else{
         handleEvent();
@@ -210,14 +267,8 @@ void Game::render() {
             Wall.render(renderer);
         }
     }
-    if(gstate!=MENU){
-    if(gstate==MULTIPLAYER){
-        player2.active=true;
-    }
-    else if(gstate==SINGLEPLAYER){
-        player2.active=false;
-    }
     SDL_Rect player1scr,player2scr;
+        if(player.active){
         switch(player.direction){
             case UP:{player1scr={3,7,55,55};break;}
             case DOWN:{player1scr={262,3,56,55};break;}
@@ -226,6 +277,7 @@ void Game::render() {
             }
             player.setSpriteSheet(spritesheet,player1scr);
             player.render(renderer);
+        }
             if (gstate == MULTIPLAYER && player2.active) {
                 switch (player2.direction) {
                         case UP:    player2scr = {2, 529, 57, 57}; break;
@@ -236,7 +288,6 @@ void Game::render() {
                 player2.setSpriteSheet(spritesheet, player2scr);
                 player2.render(renderer);
         }
-    }
     for(auto &enemy:enemies){
             SDL_Rect enemyscr;
     switch(enemy.direction){
@@ -255,8 +306,12 @@ void Game::render() {
             Wall.render(renderer);
         }
     }
+    if (currentLevel == 3 && boss.active) {
+    boss.render(renderer);
+    }
     SDL_RenderPresent(renderer);
 }
+
 void Game::handleMenuEvent() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
@@ -275,6 +330,9 @@ void Game::handleMenuEvent() {
                 case SDLK_SPACE:
                     if (menuSelection == 0 || menuSelection == 1) {
                         gstate = (menuSelection == 0) ? SINGLEPLAYER : MULTIPLAYER;
+                        cout<<"gstate "<<gstate<<endl;
+                        currentLevel=1;
+                        loadLevel(currentLevel);
                         ifstream saveFile((gstate == MULTIPLAYER) ? "saves/multi.txt" : "saves/single.txt");
                         if (saveFile && saveFile.peek() != EOF) {
                             saveFile.close();
@@ -315,9 +373,20 @@ void Game::loadLevel(int level){
     enemynumber=5+level;
     generateWall(mapFile);
     spawnEnemyTank();
+    player2.active = (gstate == MULTIPLAYER);
     player=PlayerTank(((MAP_WIDTH-1)/2)*TITLE_SIZE,(MAP_HEIGHT-2)*TITLE_SIZE);
+    player.active=true;
+    if(player2.active){
     player2 = PlayerTank(((MAP_WIDTH-3)/2)*TITLE_SIZE, (MAP_HEIGHT-2)*TITLE_SIZE);
+    player2.active=true;
+        }
+    if (currentLevel == 3) {
+    boss.active = true;
+    boss.loadFrames(renderer);
+    boss.lazer.loadFrames(renderer);
+        }
 }
+
 void Game::generateWall(const string &mapFile){
     ifstream file(mapFile.c_str());
     if(!file){
@@ -369,16 +438,19 @@ void Game::spawnEnemyTank(){
 }
 
 void Game::saveGame(){
-    cout << "Saving game - gstate: " << gstate << endl;
+    cout << "Saving game - prevState: " << prevState << endl;
     string filename = (prevState == MULTIPLAYER) ? "saves/multi.txt" : "saves/single.txt";
     ofstream saveFile(filename, ios::trunc);
     if (!saveFile) {
         cerr << "Error! Cannot save game to " << filename << endl;
         return;
     }
+    saveFile<<prevState<<endl;
     saveFile<<currentLevel<<endl;
     saveFile<<player.x<<" "<<player.y<<" "<<player.direction<<" "<<player.active<<endl;
+    if(prevState==MULTIPLAYER){
     saveFile<<player2.x<<" "<<player2.y<<" "<<player2.direction<<" "<<player2.active<<endl;
+    }
     saveFile<<walls.size()<<endl;
     for(auto &Wall:walls){
         saveFile<<Wall.x<<" "<<Wall.y<<" "<<Wall.type<<" "<<Wall.active<<endl;
@@ -386,6 +458,9 @@ void Game::saveGame(){
     saveFile<<enemies.size()<<endl;
     for(auto &enemy:enemies){
         saveFile<<enemy.x<<" "<<enemy.y<<" "<<enemy.direction<<" "<<enemy.active<<endl;
+    }
+    if (currentLevel == 3) {
+        saveFile << boss.health << " " << boss.active << endl;
     }
     saveFile.close();
     cout<<"Game saved!"<<endl;
@@ -398,36 +473,63 @@ void Game::loadGame(){
         cerr << "Error! No save file found: " << filename << endl;
         return;
     }
+
     walls.clear();
     enemies.clear();
-    loadFile>>currentLevel;
-    int direction;
-    loadFile>>player.x>>player.y>>direction>>player.active;
-    player.direction=static_cast<Direction>(direction);
-    int direction2;
-    loadFile>>player2.x>>player2.y>>direction2>>player2.active;
-    player2.direction=static_cast<Direction>(direction2);
+    int savedGstate;
+    loadFile >> savedGstate;
+    gstate = static_cast<GameState>(savedGstate);
+
+    loadFile >> currentLevel;
+
+    int x1, y1, dir1, active1;
+    loadFile >> x1 >> y1 >> dir1 >> active1;
+    player = PlayerTank(x1, y1);
+    player.direction = static_cast<Direction>(dir1);
+    player.active = active1;
+
+    if (gstate == MULTIPLAYER) {
+        int x2, y2, dir2, active2;
+        loadFile >> x2 >> y2 >> dir2 >> active2;
+        player2 = PlayerTank(x2, y2);
+        player2.direction = static_cast<Direction>(dir2);
+        player2.active = active2;
+    } else {
+        player2.active = false;
+    }
+
     int wallCount;
-    loadFile>>wallCount;
-    for(int i=0;i<wallCount;i++){
-        int x,y,type,active;
-        loadFile>>x>>y>>type>>active;
-        walls.emplace_back(x,y,(WallType)type);
-        walls.back().active=active;
+    loadFile >> wallCount;
+    for (int i = 0; i < wallCount; i++) {
+        int x, y, type, active;
+        loadFile >> x >> y >> type >> active;
+        walls.emplace_back(x, y, (WallType)type);
+        walls.back().active = active;
     }
+
     int enemyCount;
-    loadFile>>enemyCount;
-    for(int i=0;i<enemyCount;i++){
-        int x,y,direction,active;
-        loadFile>>x>>y>>direction>>active;
-        enemies.emplace_back(x,y);
-        enemies.back().direction=(Direction)direction;
-        enemies.back().active=active;
+    loadFile >> enemyCount;
+    for (int i = 0; i < enemyCount; i++) {
+        int x, y, direction, active;
+        loadFile >> x >> y >> direction >> active;
+        enemies.emplace_back(x, y);
+        enemies.back().direction = static_cast<Direction>(direction);
+        enemies.back().active = active;
     }
+
+    if (currentLevel == 3) {
+        loadFile >> boss.health >> boss.active;
+        if (boss.active) {
+            boss.loadFrames(renderer);
+            boss.lazer.loadFrames(renderer);
+        }
+    }
+
     loadFile.close();
 }
 
 void Game::update(){
+    cout<<"player2 active status: "<<player2.active<<endl;
     if(enemies.empty()){
         currentLevel++;
         loadLevel(currentLevel);
@@ -442,6 +544,17 @@ void Game::update(){
         if(rand()%100<2){
             enemy.shoot();
         }
+    }
+    if (currentLevel == 3 && boss.active) {
+    boss.updateBullets(walls, player,player2);
+    boss.updateAnimation();
+
+    if (rand() % 100 < 3) {
+        boss.shoot();
+    }
+    if(rand()%300<3){
+        boss.shootLazer();
+    }
     }
     for(auto &enemy:enemies){
         for(auto &Bullet:enemy.bullets){
@@ -544,21 +657,63 @@ void Game::update(){
             }
         }
     }
+    if(boss.lazer.active&&boss.lazer.canCollide){
+    if(SDL_HasIntersection(&player.rect,&boss.lazer.rect)){
+        player.active=false;
+     }
+    }
+    for(auto &Bullet:boss.bullets){
+        if(SDL_HasIntersection(&Bullet.rect,&player.rect)){
+            Bullet.active=false;
+            player.active=false;
+        }
+    }
+
+    for (size_t i = 0; i < player.bullets.size(); i++) {
+    if (boss.active&&SDL_HasIntersection(&player.bullets[i].rect, &boss.rect)) {
+        boss.health--;
+        player.bullets[i].active = false;
+    }
+    }
     }
     if(player2.active){
     for(auto &enemy:enemies){
         for(auto &Bullet:enemy.bullets){
             if(SDL_HasIntersection(&Bullet.rect,&player2.rect)){
-                cout<<"A";
+                cout<<"player2 bi ban huhuhu"<<endl;
                 Bullet.active=false;
                 player2.active=false;
             }
         }
     }
+    if(boss.lazer.active&&boss.lazer.canCollide){
+    if(SDL_HasIntersection(&player2.rect,&boss.lazer.rect)){
+        player2.active=false;
+        }
+    }
+    for (size_t i = 0; i < boss.bullets.size(); i++) {
+    if (SDL_HasIntersection(&boss.bullets[i].rect, &player2.rect)) {
+        player2.active = false;
+        boss.bullets[i].active=false;
+        }
+        }
+        for (size_t i = 0; i < player2.bullets.size(); i++) {
+    if (boss.active&&SDL_HasIntersection(&player2.bullets[i].rect, &boss.rect)) {
+        boss.health--;
+        player2.bullets[i].active = false;
+        }
+        }
+        }
+
+    if (boss.health <= 0) {
+    boss.active = false;
     }
     if(!player2.active&&!player.active){
-        running=false;
+        gstate=LOSS;
         return;
+    }
+    if(currentLevel>=4){
+        gstate=VICTORY;
     }
 }
 Game::~Game() {

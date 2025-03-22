@@ -5,6 +5,7 @@
 #include "constants.h"
 #include "bullets.h"
 using namespace std;
+enum BattackType{IDLE, BULLET, LAZER};
 enum Direction {UP, DOWN, LEFT, RIGHT};
 class Wall;
 class EnemyTank;
@@ -48,6 +49,32 @@ public:
     void shoot();
     void updateBullets(const vector<Wall>&walls,const vector<EnemyTank>enemies,const PlayerTank &player,const PlayerTank &player2);
     void randomDirection(int screenheight);
+};
+class Boss{
+public:
+    int x,y;
+    int health=20;
+    int shootDelay,lazerDelay;
+    int currentFrame=0;
+    int frameCount;
+    int animationSpeed;
+    bool active=false;
+    Lazer lazer;
+    BattackType atkType=IDLE;
+    SDL_Rect rect;
+    SDL_Rect scrRect;
+    SDL_Texture* bossFrames[8];
+    vector<Bullets> bullets;
+    Boss(): x(0),y(0){}
+    Boss(int _x, int _y);
+    void loadFrames(SDL_Renderer* renderer);
+    void render(SDL_Renderer* renderer);
+    void shoot();
+    void shootLazer();
+    void takeDamage();
+    void updateAnimation();
+    void updateBullets(const vector<Wall>&walls,const PlayerTank &player,const PlayerTank &player2);
+    ~Boss();
 };
 
 #endif // TANK_H_INCLUDED
