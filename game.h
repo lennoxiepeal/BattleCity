@@ -9,6 +9,7 @@
 #include "wall.h"
 #include "tank.h"
 #include "bullets.h"
+#include "audio.h"
 using namespace std;
 enum GameState {MENU, SINGLEPLAYER, MULTIPLAYER, PAUSE, LOADSCREEN, VICTORY, LOSS, EXIT};
 class Game{
@@ -34,6 +35,7 @@ public:
     PlayerTank player2;
     Boss boss=Boss(((MAP_WIDTH) / 2) * TITLE_SIZE,TITLE_SIZE);
     int enemynumber=1;
+    Mix_Music* prevMusic = nullptr;
     Game();
     void saveGame();
     void loadGame();

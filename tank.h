@@ -4,9 +4,9 @@
 #include "wall.h"
 #include "constants.h"
 #include "bullets.h"
+#include "audio.h"
 using namespace std;
 enum BattackType{IDLE, BULLET, LAZER};
-enum Direction {UP, DOWN, LEFT, RIGHT};
 class Wall;
 class EnemyTank;
 class PlayerTank{
@@ -17,6 +17,7 @@ public:
     Direction direction=UP;
     SDL_Rect scrRect;
     SDL_Texture* spritesheet;
+    int explosionFrame=-1;
     bool active;
     SDL_Rect rect;
     vector<Bullets> bullets;
@@ -41,6 +42,7 @@ public:
     bool active;
     int moveDelay,shootDelay;
     int randomMoveTimer;
+    int explosionFrame=-1;
     EnemyTank(): x(0),y(0),dirX(0),dirY(0),spritesheet(nullptr){}
     EnemyTank(int startX,int startY);
     void setSpriteSheet(SDL_Texture* sheet,SDL_Rect source);
@@ -59,6 +61,11 @@ public:
     int frameCount;
     int animationSpeed;
     bool active=false;
+    int explosionFrame = -1;
+    int explosionCounter = 0;
+    int explosionSpeed = 5;
+    SDL_Texture* explosionTexture = nullptr;
+    void loadExplosionTexture(SDL_Renderer* renderer);
     Lazer lazer;
     BattackType atkType=IDLE;
     SDL_Rect rect;

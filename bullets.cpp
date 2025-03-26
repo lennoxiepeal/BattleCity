@@ -1,5 +1,6 @@
 #include "bullets.h"
-Bullets::Bullets(int startX,int startY,int dirX,int dirY){
+Bullets::Bullets(int startX,int startY,Direction directionX){
+    direction=directionX;
     x=startX;
     y=startY;
     dx=dirX;
@@ -9,8 +10,12 @@ Bullets::Bullets(int startX,int startY,int dirX,int dirY){
     rect={x,y,10,10};
 }
 void Bullets::move(){
-    x+=dx;
-    y+=dy;
+    switch (direction) {
+        case UP:    y -= 15; break;
+        case DOWN:  y += 15; break;
+        case LEFT:  x += 15; break;
+        case RIGHT: x -= 15; break;
+    }
     rect.x=x;
     rect.y=y;
     if(x<TITLE_SIZE||x>SCREEN_WIDTH-TITLE_SIZE||y>SCREEN_HEIGHT-TITLE_SIZE||y<TITLE_SIZE){
@@ -38,8 +43,6 @@ void Lazer::loadFrames(SDL_Renderer* renderer) {
         lazerFrames[i] = IMG_LoadTexture(renderer, filename.c_str());
         if (!lazerFrames[i]) {
             std::cerr << "[ERROR] Failed to load " << filename << " - " << IMG_GetError() << std::endl;
-        } else {
-            std::cout << "[DEBUG] Loaded Lazer Frame " << i << " successfully!\n";
         }
     }
 }
@@ -50,8 +53,6 @@ void Lazer::update() {
     if (frameCounter >= animationSpeed) {
         frameCounter = 0;
         currentFrame = (currentFrame + 1) % frameCount;
-        std::cout << "[DEBUG] Lazer Update - Frame: " << currentFrame
-                  << " | Can Collide: " << canCollide << std::endl;
 
         if(currentFrame>=1){
             canCollide=true;
@@ -72,8 +73,6 @@ void Lazer::render(SDL_Renderer* renderer) {
     else{
         std::cout<<"NO RENDERL"<<std::endl;
     }
-    std::cout << "📏 Lazer position: x=" << rect.x << ", y=" << rect.y
-          << ", w=" << rect.w << ", h=" << rect.h << "\n";
 
 }
 

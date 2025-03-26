@@ -6,7 +6,7 @@ PlayerTank::PlayerTank(int startX,int startY){
     active=false;
     rect={x,y,TITLE_SIZE,TITLE_SIZE};
     dirX=0;
-    dirY=-1;
+    dirY=1;
 }
 void PlayerTank::render(SDL_Renderer* renderer){
     if(active){
@@ -18,7 +18,7 @@ void PlayerTank::render(SDL_Renderer* renderer){
             SDL_RenderFillRect(renderer,&rect);
         }
         for(auto &Bullets:bullets){
-        Bullets.render(renderer);
+            Bullets.render(renderer);
         }
     }
 }
@@ -58,10 +58,13 @@ void PlayerTank::move(int dx,int dy,const vector<Wall>&walls,const vector<EnemyT
 }
 void PlayerTank::shoot(){
     if(ShootDelay>0) return;
+    Mix_PlayChannel(-1,shootSound,0);
     ShootDelay=20;
     bullets.push_back(Bullets(x+TITLE_SIZE/2-5,y+TITLE_SIZE/2-5,
-                              this->dirX,this->dirY));
+                              this->direction));
 }
+
+
 void PlayerTank::updateBullets(const vector<Wall> &walls){
     for(auto &Bullets:bullets){
         Bullets.move();
@@ -144,9 +147,10 @@ void EnemyTank::randomDirection(int screenheight){
 
 void EnemyTank::shoot(){
     if(--shootDelay>0) return;
+    Mix_PlayChannel(-1,enemyShootSound,0);
     shootDelay=5;
     bullets.push_back(Bullets(x+TITLE_SIZE/2-5,y+TITLE_SIZE/2-5,
-                              this->dirX,this->dirY));
+                              this->direction));
 }
 
 void EnemyTank::updateBullets(const vector<Wall>&walls,const vector<EnemyTank>enemies,const PlayerTank &player,const PlayerTank &player2){
@@ -185,7 +189,7 @@ void EnemyTank::setSpriteSheet(SDL_Texture* sheet,SDL_Rect source){
 Boss::Boss(int _x, int _y):lazer(_x + 160 / 2 - 20, _y + 125){
     x=_x;
     y=_y;
-    health = 20;
+    health = 5;
     currentFrame = 0;
     animationSpeed = 10;
     frameCount = 1;
@@ -208,20 +212,45 @@ void Boss::loadFrames(SDL_Renderer* renderer) {
     }
 }
 
-void Boss::render(SDL_Renderer* renderer) {
+void Boss::loadExplosionTexture(SDL_Renderer* renderer) {
+    string filename="BossAssets/Explosion.png";
+    explosionTexture = IMG_LoadTexture(renderer, filename.c_str( ));
+    cout<<"loaded!"<<endl;
+    if (!explosionTexture) {
+        std::cerr << "Failed to load boss explosion spritesheet! " << IMG_GetError() << std::endl;
+    }
+}
 
-    if (bossFrames[currentFrame]) {
-        SDL_RenderCopy(renderer, bossFrames[currentFrame], nullptr, &rect);
+
+void Boss::render(SDL_Renderer* renderer) {
+    if (explosionFrame >= 0 && explosionTexture) {
+        SDL_Rect explosionSrc = { explosionFrame * 96, 0, 96, 96 };
+        SDL_Rect explosionDest = { x, y, 160, 160 };
+        SDL_RenderCopy(renderer, explosionTexture, &explosionSrc, &explosionDest);
     }
-    for(auto &Bullet:bullets){
-        Bullet.render(renderer);
-    }
-    if (lazer.active) {
-        lazer.render(renderer);
+    if(active){
+        if (bossFrames[currentFrame]) {
+            SDL_RenderCopy(renderer, bossFrames[currentFrame], nullptr, &rect);
+        }
+        for(auto &Bullet:bullets){
+            Bullet.render(renderer);
+        }
+        if (lazer.active) {
+            lazer.render(renderer);
+        }
     }
 }
 
 void Boss::updateAnimation() {
+    if (explosionFrame >= 0) {
+        if (++explosionCounter >= explosionSpeed) {
+            explosionFrame++;
+            explosionCounter = 0;
+            if (explosionFrame >= 11) {
+                explosionFrame = -1;
+            }
+        }
+    }
     static int frameCounter = 0;
     frameCounter++;
     if (frameCounter >= animationSpeed) {
@@ -242,16 +271,18 @@ void Boss::updateAnimation() {
 
 void Boss::shoot(){
     if(--shootDelay>0) return;
+    Mix_PlayChannel(-1,enemyShootSound,0);
     shootDelay=5;
     atkType=BULLET;
     currentFrame = 2;
     frameCount = 2;
     animationSpeed = 8;
-    bullets.push_back(Bullets(x+160/2-5,y+125,0,20));
+    bullets.push_back(Bullets(x+160/2-5,y+125,DOWN));
 }
 
 void Boss::shootLazer(){
     if(--lazerDelay>0) return;
+    Mix_PlayChannel(-1,lazerSound,0);
     lazerDelay=10;
     atkType=LAZER;
     currentFrame=4;
@@ -282,3 +313,4 @@ Boss::~Boss(){
         }
     }
 }
+
