@@ -434,7 +434,10 @@ void Game::loadLevel(int level){
         player2.active=true;
     }
     if(currentLevel==1) playMusic(level1Music);
-    else if(currentLevel==2) playMusic(level2Music);
+    else if(currentLevel==2){
+            playMusic(level2Music);
+            boss.health=5;
+    }
     else if (currentLevel == 3) {
             playMusic(bossMusic);
             boss.active = true;
@@ -453,7 +456,6 @@ void Game::generateWall(const string &mapFile){
 
     string line;
     int row = 0;
-
     while(getline(file, line)){
         for(int col = 0; col < line.size(); col++){
             char tile = line[col];
@@ -469,7 +471,6 @@ void Game::generateWall(const string &mapFile){
         }
         row++;
     }
-
     file.close();
     cerr << "Map loaded successfully, total walls: " << walls.size() << endl;
 }
@@ -591,11 +592,11 @@ void Game::loadGame(){
 }
 
 void Game::update(){
-    if((currentLevel==3&&enemies.empty())&&boss.active==false){
+    if(currentLevel>=4){
         gstate=VICTORY;
         playMusic(winSound);
     }
-    if(enemies.empty()&&currentLevel!=3){
+    if(enemies.empty()&&boss.active==false){
         currentLevel++;
         loadLevel(currentLevel);
     }

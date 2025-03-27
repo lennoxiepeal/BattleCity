@@ -288,7 +288,7 @@ void Boss::shootLazer(){
     currentFrame=4;
     frameCount=7;
     animationSpeed=10;
-    lazer.activate(x,y);
+    lazer.activate(x,y);3
 }
 
 void Boss::updateBullets(const vector<Wall>&walls,const PlayerTank &player,const PlayerTank &player2){
