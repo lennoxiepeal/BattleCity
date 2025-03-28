@@ -583,6 +583,9 @@ void Game::loadGame(){
             boss.loadExplosionTexture(renderer);
         }
     }
+    else{
+        boss.health=5;
+    }
     if(currentLevel==1) playMusic(level1Music);
     else if(currentLevel==2) playMusic(level2Music);
     else if (currentLevel == 3) {
@@ -645,6 +648,9 @@ void Game::update(){
     enemies.erase(remove_if(enemies.begin(), enemies.end(),
                         [](EnemyTank &e) { return e.explosionFrame == -1&&!e.active; }),
               enemies.end());
+    walls.erase(remove_if(walls.begin(), walls.end(),
+                        [](Wall &e) { return !e.active; }),
+              walls.end());
     for(auto &enemy:enemies){
         for(auto &Bullet1:player.bullets){
             for(auto &Bullet2:enemy.bullets){
