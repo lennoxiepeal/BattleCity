@@ -6,7 +6,7 @@
 #include "bullets.h"
 #include "audio.h"
 using namespace std;
-enum BattackType{IDLE, BULLET, LAZER};
+enum BattackType{IDLE, BULLET, LAZER}; //trang thai cua lazer: DUNG YEN, BAN DAN, BAN LAZER
 class Wall;
 class EnemyTank;
 class PlayerTank{
@@ -17,18 +17,17 @@ public:
     Direction direction=UP;
     SDL_Rect scrRect;
     SDL_Texture* spritesheet;
-    int explosionFrame=-1;
+    int explosionFrame=-1; //Luc dau xe tang chua phat no
     bool active;
     SDL_Rect rect;
     vector<Bullets> bullets;
-    bool inBush=true;
     PlayerTank(): x(0),y(0),dirX(0),dirY(0),spritesheet(nullptr){}
     PlayerTank(int startX,int startY);
     void setSpriteSheet(SDL_Texture* sheet,SDL_Rect source);
     void move(int dx,int dy,const vector<Wall>&walls,const vector<EnemyTank>enemies);
     void render(SDL_Renderer* renderer);
     void shoot();
-    void updateBullets(const vector<Wall>&walls);
+    void updateBullets(const vector<Wall>&walls); //cap nhat dan
 };
 class EnemyTank{
 public:
@@ -41,7 +40,7 @@ public:
     vector<Bullets> bullets;
     bool active;
     int moveDelay,shootDelay;
-    int randomMoveTimer;
+    int randomMoveTimer; //Thoi gian ke dich di chuyen ngau nhien
     int explosionFrame=-1;
     EnemyTank(): x(0),y(0),dirX(0),dirY(0),spritesheet(nullptr){}
     EnemyTank(int startX,int startY);
@@ -50,7 +49,7 @@ public:
     void render(SDL_Renderer* renderer);
     void shoot();
     void updateBullets(const vector<Wall>&walls,const vector<EnemyTank>enemies,const PlayerTank &player,const PlayerTank &player2);
-    void randomDirection(int screenheight);
+    void randomDirection(int screenheight); //ham khoi tao huong di ngau nhien
 };
 class Boss{
 public:
@@ -78,7 +77,7 @@ public:
     void render(SDL_Renderer* renderer);
     void shoot();
     void shootLazer();
-    void takeDamage();
+    void takeDamage(); //Ham nhan sat thuong
     void updateAnimation();
     void updateBullets(const vector<Wall>&walls,const PlayerTank &player,const PlayerTank &player2);
     ~Boss();

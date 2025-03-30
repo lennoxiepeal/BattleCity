@@ -1,7 +1,7 @@
 #ifndef WALL_H_INCLUDED
 #define WALL_H_INCLUDED
 #include <SDL.h>
-enum WallType{BRICK,STEEL,BUSH};
+enum WallType{BRICK,STEEL,BUSH}; //cac loai tuong
 class Wall{
 public:
     int x,y;
