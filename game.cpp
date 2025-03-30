@@ -378,14 +378,16 @@ void Game::handleMenuEvent() {
                     Mix_PlayChannel(-1,confirm,0);
                     if (menuSelection == 0 || menuSelection == 1) {
                         gstate = (menuSelection == 0) ? SINGLEPLAYER : MULTIPLAYER;
-                        cout<<"gstate "<<gstate<<endl;
-                        currentLevel=1;
-                        loadLevel(currentLevel);
                         ifstream saveFile((gstate == MULTIPLAYER) ? "saves/multi.txt" : "saves/single.txt");
                         if (saveFile && saveFile.peek() != EOF) {
                             saveFile.close();
                             prevState = gstate;
                             gstate = LOADSCREEN;
+                        }
+                        else{
+                            prevState=gstate;
+                            currentLevel=1;
+                            loadLevel(currentLevel);
                         }
                     } else {
                         running = false;

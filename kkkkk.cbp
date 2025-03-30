@@ -32,40 +32,18 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
-		<Unit filename="audio.cpp">
-			<Option target="Debug" />
-		</Unit>
-		<Unit filename="audio.h">
-			<Option target="Debug" />
-		</Unit>
-		<Unit filename="bullets.cpp">
-			<Option target="Debug" />
-		</Unit>
-		<Unit filename="bullets.h">
-			<Option target="Debug" />
-		</Unit>
-		<Unit filename="constants.h">
-			<Option target="Debug" />
-		</Unit>
-		<Unit filename="game.cpp">
-			<Option target="Debug" />
-		</Unit>
-		<Unit filename="game.h">
-			<Option target="Debug" />
-		</Unit>
+		<Unit filename="audio.cpp" />
+		<Unit filename="audio.h" />
+		<Unit filename="bullets.cpp" />
+		<Unit filename="bullets.h" />
+		<Unit filename="constants.h" />
+		<Unit filename="game.cpp" />
+		<Unit filename="game.h" />
 		<Unit filename="main.cpp" />
-		<Unit filename="tank.cpp">
-			<Option target="Debug" />
-		</Unit>
-		<Unit filename="tank.h">
-			<Option target="Debug" />
-		</Unit>
-		<Unit filename="wall.cpp">
-			<Option target="Debug" />
-		</Unit>
-		<Unit filename="wall.h">
-			<Option target="Debug" />
-		</Unit>
+		<Unit filename="tank.cpp" />
+		<Unit filename="tank.h" />
+		<Unit filename="wall.cpp" />
+		<Unit filename="wall.h" />
 		<Extensions>
 			<lib_finder disable_auto="1" />
 		</Extensions>
